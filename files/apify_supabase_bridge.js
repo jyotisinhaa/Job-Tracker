@@ -51,6 +51,8 @@ export default {
     // descriptions that demand more than MAX_YEARS of experience (the actor
     // extracts required years into item.yearsOfExperience).
     const SENIOR_TITLE = /\b(staff|principal|distinguished|fellow|director|vice\s*president|vp|manager)\b|head of/i;
+    // Backend-only: drop frontend / full-stack / UI / mobile roles.
+    const FRONTEND_TITLE = /\b(frontend|front[\s-]?end|full[\s-]?stack|fullstack|ui|ux|react|angular|vue|javascript|web developer|mobile|ios|android)\b/i;
     const MAX_YEARS = 5;
     const reqYears = (item) => {
       const a = item.yearsOfExperience;
@@ -67,8 +69,10 @@ export default {
 
     // 2. Map Apify's fields to your Supabase "jobs" table schema.
     //    Adjust field names here if your Actor's output differs.
+    //    dynamicFilterMatch === false ⇒ the job failed a soft filter
+    //    (e.g. companySizeMin: 1000) — drop it. Missing/true is kept.
     let rows = items
-      .filter((item) => (item.jobUrl || item.jobTitle) && !tooSenior(item))
+      .filter((item) => (item.jobUrl || item.jobTitle) && !tooSenior(item) && item.dynamicFilterMatch !== false && !FRONTEND_TITLE.test(item.jobTitle || ""))
       .map((item) => ({
         id:
           item.jobUrl ||

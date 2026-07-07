@@ -45,6 +45,8 @@ async function main() {
   // or descriptions that explicitly demand more than MAX_YEARS of experience
   // (the actor extracts required years into item.yearsOfExperience).
   const SENIOR_TITLE = /\b(staff|principal|distinguished|fellow|director|vice\s*president|vp|manager)\b|head of/i;
+  // Backend-only: drop frontend / full-stack / UI / mobile roles.
+  const FRONTEND_TITLE = /\b(frontend|front[\s-]?end|full[\s-]?stack|fullstack|ui|ux|react|angular|vue|javascript|web developer|mobile|ios|android)\b/i;
   const MAX_YEARS = 5;
   function reqYears(item) {
     const a = item.yearsOfExperience;
@@ -60,8 +62,10 @@ async function main() {
   }
 
   const before = items.length;
-  items = items.filter((item) => !tooSenior(item));
-  console.log(`Filtered out ${before - items.length} too-senior jobs (kept ${items.length})`);
+  // Drop too-senior roles, and jobs that failed a soft filter such as
+  // companySizeMin: 1000 (the actor flags those with dynamicFilterMatch === false).
+  items = items.filter((item) => !tooSenior(item) && item.dynamicFilterMatch !== false && !FRONTEND_TITLE.test(item.jobTitle || ""));
+  console.log(`Filtered out ${before - items.length} jobs (too-senior / too-small company / frontend); kept ${items.length}`);
 
   // 2. Map to the jobs table schema (identical to the Worker bridge)
   let rows = items
