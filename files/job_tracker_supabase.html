@@ -1,0 +1,398 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Job Hunt Tracker</title>
+<style>
+  :root {
+    --bg: #f4f6f9; --bg-grad-1: #eef2f7; --bg-grad-2: #f7f4f0;
+    --surface: #ffffff; --surface-2: #f8fafc;
+    --ink: #131a22; --muted: #6a7684; --faint: #98a2b0;
+    --line: #e7ebf1; --line-strong: #d7dde5;
+    --accent: #2f6df6;
+    --shadow: 0 1px 2px rgba(17,24,39,.04), 0 4px 14px rgba(17,24,39,.06);
+    --shadow-lift: 0 6px 12px rgba(17,24,39,.08), 0 18px 36px rgba(17,24,39,.12);
+    --radius: 14px; --radius-sm: 9px;
+    --saved:#64748b; --applied:#2f6df6; --screening:#c47f13; --interview:#7c5cd6; --offer:#12a065; --rejected:#e0574a;
+    --sans: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    --mono: 'SFMono-Regular', ui-monospace, 'JetBrains Mono', Consolas, monospace;
+    --good:#12a065; --ok:#2f6df6; --mid:#c47f13; --low:#94a3b8;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg:#0e1116; --bg-grad-1:#0f141b; --bg-grad-2:#12100e;
+      --surface:#161b22; --surface-2:#1b212a;
+      --ink:#e8edf3; --muted:#98a4b3; --faint:#69747f;
+      --line:#252c36; --line-strong:#313a45;
+      --accent:#5b8cff;
+      --shadow: 0 1px 2px rgba(0,0,0,.3), 0 6px 18px rgba(0,0,0,.4);
+      --shadow-lift: 0 8px 20px rgba(0,0,0,.45), 0 24px 48px rgba(0,0,0,.55);
+      --saved:#8a97a8; --applied:#5b8cff; --screening:#d69838; --interview:#a48bec; --offer:#2ec27e; --rejected:#f0776a;
+      --good:#2ec27e; --ok:#5b8cff; --mid:#d69838; --low:#7a8896;
+    }
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; }
+  body {
+    background:
+      radial-gradient(1200px 600px at 10% -10%, var(--bg-grad-1), transparent 60%),
+      radial-gradient(1000px 500px at 110% 0%, var(--bg-grad-2), transparent 55%),
+      var(--bg);
+    color: var(--ink); font-family: var(--sans);
+    -webkit-font-smoothing: antialiased; min-height: 100vh;
+  }
+  .wrap { max-width: 1500px; margin: 0 auto; padding: 24px 22px 60px; }
+
+  /* Header */
+  header { display: flex; flex-direction: column; align-items: center; text-align: center; gap: 14px; margin-bottom: 20px; }
+  .title-block h1 { font-size: 26px; font-weight: 800; letter-spacing: -.02em; margin: 0; background: linear-gradient(90deg, var(--applied), var(--interview) 55%, var(--offer)); -webkit-background-clip: text; background-clip: text; color: transparent; }
+  .title-block p { margin: 4px 0 0; font-size: 13.5px; color: var(--muted); }
+  .header-actions { display: flex; align-items: center; gap: 10px; }
+  .pill-total { font-family: var(--mono); font-size: 12px; background: var(--surface); border: 1px solid var(--line); border-radius: 999px; padding: 7px 13px; color: var(--muted); box-shadow: var(--shadow); }
+  .pill-total b { color: var(--ink); }
+  .btn { font-family: var(--sans); font-size: 13px; font-weight: 550; padding: 8px 14px; border-radius: var(--radius-sm); border: 1px solid var(--line-strong); background: var(--surface); color: var(--ink); cursor: pointer; box-shadow: var(--shadow); transition: transform .08s ease, box-shadow .15s ease, background .15s ease; display: inline-flex; align-items: center; gap: 7px; }
+  .btn:hover { transform: translateY(-1px); box-shadow: var(--shadow-lift); }
+  .btn:active { transform: translateY(0); }
+  .btn.primary { background: var(--accent); border-color: transparent; color: #fff; }
+  .btn.ghost { box-shadow: none; background: transparent; }
+  .btn svg { width: 15px; height: 15px; }
+
+  /* Config banner */
+  .config-banner { display: none; background: #fff7e6; border: 1px solid #f2d698; color: #7a5a12; border-radius: var(--radius); padding: 13px 16px; margin-bottom: 16px; font-size: 13.5px; }
+
+  /* Toolbar */
+  .toolbar { display: flex; gap: 10px; margin-bottom: 18px; flex-wrap: wrap; align-items: center; justify-content: center; }
+  .search { position: relative; flex: 0 1 540px; min-width: 220px; }
+  .search svg { position: absolute; left: 12px; top: 50%; transform: translateY(-50%); width: 15px; height: 15px; color: var(--faint); }
+  .search input { width: 100%; font-family: var(--sans); font-size: 13.5px; padding: 10px 12px 10px 34px; border: 1px solid var(--line); border-radius: var(--radius-sm); background: var(--surface); color: var(--ink); box-shadow: var(--shadow); }
+  .search input:focus { outline: none; border-color: var(--accent); box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent) 18%, transparent); }
+
+  /* Add form */
+  .add-form { display: none; gap: 10px; margin-bottom: 18px; flex-wrap: wrap; padding: 14px; background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius); box-shadow: var(--shadow); }
+  .add-form.open { display: flex; }
+  .add-form input { flex: 1; min-width: 150px; font-family: var(--sans); font-size: 13.5px; padding: 9px 11px; border: 1px solid var(--line); border-radius: var(--radius-sm); background: var(--surface-2); color: var(--ink); }
+  .add-form input:focus { outline: none; border-color: var(--accent); }
+
+  /* Board */
+  .board { display: grid; grid-template-columns: repeat(6, minmax(215px, 1fr)); gap: 14px; overflow-x: auto; padding-bottom: 8px; }
+  .col { --col: var(--line-strong); background: color-mix(in srgb, var(--col) 8%, var(--surface)); border: 1px solid color-mix(in srgb, var(--col) 26%, var(--line)); border-top: 3px solid var(--col); border-radius: var(--radius); padding: 10px 10px 14px; min-height: 120px; transition: background .15s ease, border-color .15s ease; }
+  .col.drop-hover { background: color-mix(in srgb, var(--col) 18%, var(--surface)); border-color: var(--col); box-shadow: inset 0 0 0 1px var(--col); }
+  .col-head { display: flex; align-items: center; justify-content: space-between; padding: 6px 4px 12px; position: sticky; top: 0; }
+  .col-head .name { display: flex; align-items: center; gap: 8px; font-size: 12px; font-weight: 700; letter-spacing: .02em; text-transform: uppercase; color: var(--col); }
+  .col-head .dot { width: 9px; height: 9px; border-radius: 50%; background: var(--col); box-shadow: 0 0 0 3px color-mix(in srgb, var(--col) 20%, transparent); }
+  .col-head .cnt { font-family: var(--mono); font-size: 11px; font-weight: 600; color: var(--col); background: color-mix(in srgb, var(--col) 14%, var(--surface)); border: 1px solid color-mix(in srgb, var(--col) 30%, transparent); border-radius: 999px; padding: 2px 9px; }
+
+  /* Card */
+  .card { background: linear-gradient(120deg, color-mix(in srgb, var(--edge) 7%, var(--surface)), var(--surface) 60%); border: 1px solid color-mix(in srgb, var(--edge) 18%, var(--line)); border-radius: var(--radius-sm); padding: 12px 12px 10px; margin-bottom: 10px; box-shadow: var(--shadow); position: relative; cursor: grab; transition: transform .1s ease, box-shadow .15s ease, opacity .15s ease; border-left: 4px solid var(--edge, var(--line-strong)); }
+  .card:hover { transform: translateY(-2px); box-shadow: var(--shadow-lift); }
+  .card.dragging { opacity: .5; cursor: grabbing; }
+  .card .top { display: flex; align-items: center; justify-content: space-between; margin-bottom: 7px; gap: 8px; }
+  .match { font-family: var(--mono); font-size: 10.5px; font-weight: 600; padding: 2px 7px; border-radius: 999px; letter-spacing: .01em; white-space: nowrap; }
+  .match.good { color: #fff; background: var(--good); }
+  .match.ok { color: #fff; background: var(--ok); }
+  .match.mid { color: #fff; background: var(--mid); }
+  .match.low { color: var(--muted); background: color-mix(in srgb, var(--low) 22%, transparent); }
+  .card .del { border: none; background: none; color: var(--faint); cursor: pointer; font-size: 16px; line-height: 1; padding: 2px 4px; border-radius: 6px; opacity: 0; transition: opacity .12s, color .12s, background .12s; }
+  .card:hover .del { opacity: 1; }
+  .card .del:hover { color: var(--rejected); background: color-mix(in srgb, var(--rejected) 12%, transparent); }
+  .card .role { font-size: 13.5px; font-weight: 600; line-height: 1.32; margin: 0 0 3px; letter-spacing: -.01em; }
+  .card .company { font-size: 12.5px; color: var(--muted); margin: 0; line-height: 1.35; }
+  .card .posted { font-size: 11px; color: var(--faint); margin-top: 5px; display: flex; align-items: center; gap: 5px; }
+  .card textarea { width: 100%; font-family: var(--sans); font-size: 12px; border: 1px solid transparent; border-radius: 7px; padding: 6px 7px; margin-top: 8px; resize: vertical; min-height: 30px; background: var(--surface-2); color: var(--ink); transition: border-color .12s; }
+  .card textarea::placeholder { color: var(--faint); }
+  .card textarea:focus { outline: none; border-color: var(--accent); background: var(--surface); }
+  .card .foot { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-top: 9px; }
+  .card select { font-family: var(--sans); font-size: 11.5px; font-weight: 550; padding: 5px 7px; border-radius: 7px; border: 1px solid var(--line); background: var(--surface-2); color: var(--ink); cursor: pointer; }
+  .card select:focus { outline: none; border-color: var(--accent); }
+  .card .view { font-size: 11.5px; font-weight: 550; color: var(--accent); text-decoration: none; display: inline-flex; align-items: center; gap: 4px; }
+  .card .view:hover { text-decoration: underline; }
+  .card .view svg { width: 12px; height: 12px; }
+  .empty { font-size: 12px; color: var(--faint); text-align: center; padding: 18px 6px; border: 1px dashed var(--line); border-radius: var(--radius-sm); }
+
+  .statusline { margin-top: 20px; font-size: 12px; color: var(--faint); font-family: var(--mono); }
+  .spin { display: inline-block; width: 12px; height: 12px; border: 2px solid var(--line-strong); border-top-color: var(--accent); border-radius: 50%; animation: spin .7s linear infinite; vertical-align: -2px; margin-right: 6px; }
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  @media (max-width: 980px) {
+    .board { grid-template-columns: repeat(6, minmax(230px, 1fr)); }
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <div class="title-block">
+      <h1>Job Hunt Tracker</h1>
+      <p>Backend · AI engineering roles — remote &amp; Bay Area, ranked by resume match</p>
+    </div>
+    <div class="header-actions">
+      <span class="pill-total" id="pillTotal">— jobs</span>
+      <button class="btn" id="addToggle">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>
+        Add job
+      </button>
+      <button class="btn ghost" id="refreshBtn" title="Refresh">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a9 9 0 1 1-2.64-6.36M21 3v6h-6"/></svg>
+      </button>
+    </div>
+  </header>
+
+  <div class="config-banner" id="configBanner">
+    ⚠️ Supabase isn't configured. Fill in <code>SUPABASE_URL</code> and <code>SUPABASE_ANON_KEY</code> near the top of the script.
+  </div>
+
+  <div class="add-form" id="addForm">
+    <input type="text" id="newRole" placeholder="Role title" />
+    <input type="text" id="newCompany" placeholder="Company" />
+    <input type="text" id="newUrl" placeholder="Job URL (optional)" />
+    <button class="btn primary" id="addBtn">Add</button>
+  </div>
+
+  <div class="toolbar">
+    <div class="search">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/></svg>
+      <input type="text" id="filter" placeholder="Filter by role, company, or location…" />
+    </div>
+  </div>
+
+  <div class="board" id="board"></div>
+  <p class="statusline" id="statusLine">Loading…</p>
+</div>
+
+<script>
+  // ── CONFIGURE THESE TWO VALUES ──────────────────────────────────
+  // Get them from Supabase: Project Settings → API
+  const SUPABASE_URL = "https://zaomjvpxluiohvpftgcq.supabase.co";
+  const SUPABASE_ANON_KEY = "sb_publishable_MstWjDEtYPm4TmSVZC2sWA_OwMG9nBY";
+  // ─────────────────────────────────────────────────────────────────
+
+  var STATUSES = ["Saved", "Applied", "Screening", "Interview", "Offer", "Rejected"];
+  var COLORS = { Saved: "var(--saved)", Applied: "var(--applied)", Screening: "var(--screening)", Interview: "var(--interview)", Offer: "var(--offer)", Rejected: "var(--rejected)" };
+  var jobs = [];
+  var filterText = "";
+  var configured = SUPABASE_URL.indexOf("YOUR_") === -1 && SUPABASE_ANON_KEY.indexOf("YOUR_") === -1;
+
+  function apiHeaders() {
+    return {
+      "apikey": SUPABASE_ANON_KEY,
+      "Authorization": "Bearer " + SUPABASE_ANON_KEY,
+      "Content-Type": "application/json",
+      "Prefer": "return=representation"
+    };
+  }
+
+  async function fetchJobs() {
+    var res = await fetch(SUPABASE_URL + "/rest/v1/jobs?select=*&order=created_at.desc", { headers: apiHeaders() });
+    if (!res.ok) throw new Error("Fetch failed: " + res.status);
+    return res.json();
+  }
+  async function updateJob(id, fields) {
+    var res = await fetch(SUPABASE_URL + "/rest/v1/jobs?id=eq." + encodeURIComponent(id), { method: "PATCH", headers: apiHeaders(), body: JSON.stringify(fields) });
+    if (!res.ok) throw new Error("Update failed: " + res.status);
+  }
+  async function insertJob(job) {
+    var res = await fetch(SUPABASE_URL + "/rest/v1/jobs", { method: "POST", headers: apiHeaders(), body: JSON.stringify([job]) });
+    if (!res.ok) throw new Error("Insert failed: " + res.status);
+    return res.json();
+  }
+  async function deleteJob(id) {
+    var res = await fetch(SUPABASE_URL + "/rest/v1/jobs?id=eq." + encodeURIComponent(id), { method: "DELETE", headers: apiHeaders() });
+    if (!res.ok) throw new Error("Delete failed: " + res.status);
+  }
+
+  function uid() { return Date.now().toString(36) + Math.random().toString(36).slice(2, 7); }
+
+  function matchClass(s) {
+    if (s == null) return null;
+    if (s >= 45) return "good";
+    if (s >= 30) return "ok";
+    if (s >= 15) return "mid";
+    return "low";
+  }
+  function relTime(iso) {
+    if (!iso) return "";
+    var d = new Date(iso), now = new Date(), days = Math.floor((now - d) / 86400000);
+    if (isNaN(days)) return "";
+    if (days <= 0) return "today";
+    if (days === 1) return "1 day ago";
+    if (days < 30) return days + " days ago";
+    var mo = Math.floor(days / 30);
+    return mo + (mo === 1 ? " month ago" : " months ago");
+  }
+  function esc(s) { var t = document.createElement("div"); t.textContent = s == null ? "" : s; return t.innerHTML; }
+
+  function visibleJobs() {
+    if (!filterText) return jobs;
+    var q = filterText.toLowerCase();
+    return jobs.filter(function(j) {
+      return (j.role || "").toLowerCase().indexOf(q) > -1 ||
+             (j.company || "").toLowerCase().indexOf(q) > -1 ||
+             (j.location || "").toLowerCase().indexOf(q) > -1;
+    });
+  }
+
+  function render() {
+    var board = document.getElementById("board");
+    board.innerHTML = "";
+    var list = visibleJobs();
+
+    STATUSES.forEach(function(status) {
+      var col = document.createElement("div");
+      col.className = "col";
+      col.dataset.status = status;
+      col.style.setProperty("--col", COLORS[status]);
+
+      var items = list.filter(function(j) { return j.status === status; })
+        .sort(function(a, b) {
+          var ms = (b.match_score == null ? -1 : b.match_score) - (a.match_score == null ? -1 : a.match_score);
+          if (ms !== 0) return ms;
+          return new Date(b.posted_at || 0) - new Date(a.posted_at || 0);
+        });
+
+      var head = document.createElement("div");
+      head.className = "col-head";
+      head.innerHTML = '<span class="name"><span class="dot"></span>' + status + '</span>' +
+                       '<span class="cnt">' + items.length + '</span>';
+      col.appendChild(head);
+
+      if (items.length === 0) {
+        var e = document.createElement("div");
+        e.className = "empty";
+        e.textContent = filterText ? "No matches" : "—";
+        col.appendChild(e);
+      }
+
+      items.forEach(function(job) { col.appendChild(buildCard(job, status)); });
+
+      // drag & drop targets
+      col.addEventListener("dragover", function(ev) { ev.preventDefault(); col.classList.add("drop-hover"); });
+      col.addEventListener("dragleave", function() { col.classList.remove("drop-hover"); });
+      col.addEventListener("drop", function(ev) {
+        ev.preventDefault(); col.classList.remove("drop-hover");
+        var id = ev.dataTransfer.getData("text/plain");
+        var job = jobs.find(function(j) { return j.id === id; });
+        if (job && job.status !== status) { moveJob(job, status); }
+      });
+
+      board.appendChild(col);
+    });
+
+    document.getElementById("pillTotal").innerHTML = "<b>" + jobs.length + "</b> job" + (jobs.length === 1 ? "" : "s");
+  }
+
+  function buildCard(job, status) {
+    var card = document.createElement("div");
+    card.className = "card";
+    card.style.setProperty("--edge", COLORS[status]);
+    card.draggable = true;
+
+    card.addEventListener("dragstart", function(ev) {
+      if (ev.target.closest("textarea, select, a, button")) { ev.preventDefault(); return; }
+      ev.dataTransfer.setData("text/plain", job.id);
+      ev.dataTransfer.effectAllowed = "move";
+      card.classList.add("dragging");
+    });
+    card.addEventListener("dragend", function() { card.classList.remove("dragging"); });
+
+    var mc = matchClass(job.match_score);
+    var badge = mc ? '<span class="match ' + mc + '">' + job.match_score + '% match</span>' : '<span></span>';
+
+    card.innerHTML =
+      '<div class="top">' + badge + '<button class="del" title="Delete">&times;</button></div>' +
+      '<p class="role">' + esc(job.role) + '</p>' +
+      '<p class="company">' + esc(job.company) + (job.location ? ' · ' + esc(job.location) : '') + '</p>' +
+      (job.posted_at ? '<div class="posted">🗓 ' + relTime(job.posted_at) + '</div>' : '') +
+      '<textarea placeholder="Notes…">' + esc(job.notes || "") + '</textarea>' +
+      '<div class="foot"><select></select>' +
+      (job.url ? '<a class="view" href="' + esc(job.url) + '" target="_blank" rel="noopener noreferrer">View <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M7 17 17 7M9 7h8v8"/></svg></a>' : '<span></span>') +
+      '</div>';
+
+    // status select
+    var select = card.querySelector("select");
+    STATUSES.forEach(function(s) {
+      var o = document.createElement("option");
+      o.value = s; o.textContent = s;
+      if (s === job.status) o.selected = true;
+      select.appendChild(o);
+    });
+    select.onchange = function() { moveJob(job, select.value); };
+
+    // delete
+    card.querySelector(".del").onclick = async function() {
+      jobs = jobs.filter(function(j) { return j.id !== job.id; });
+      render();
+      try { await deleteJob(job.id); setStatus("Deleted."); } catch (e) { setStatus("Delete failed: " + e.message); }
+    };
+
+    // notes (debounced save)
+    var ta = card.querySelector("textarea");
+    var t;
+    ta.oninput = function() {
+      job.notes = ta.value;
+      clearTimeout(t);
+      t = setTimeout(async function() {
+        try { await updateJob(job.id, { notes: job.notes }); setStatus("Saved."); }
+        catch (e) { setStatus("Save failed: " + e.message); }
+      }, 600);
+    };
+
+    return card;
+  }
+
+  async function moveJob(job, status) {
+    job.status = status;
+    render();
+    try { await updateJob(job.id, { status: status }); setStatus("Moved to " + status + "."); }
+    catch (e) { setStatus("Save failed: " + e.message); }
+  }
+
+  function setStatus(msg) {
+    document.getElementById("statusLine").textContent = msg + "  ·  last synced " + new Date().toLocaleTimeString();
+  }
+
+  async function load() {
+    if (!configured) {
+      document.getElementById("configBanner").style.display = "block";
+      document.getElementById("statusLine").textContent = "Not configured.";
+      return;
+    }
+    document.getElementById("statusLine").innerHTML = '<span class="spin"></span>Syncing…';
+    try {
+      jobs = await fetchJobs();
+      render();
+      setStatus("Loaded " + jobs.length + " jobs");
+    } catch (e) {
+      document.getElementById("statusLine").textContent = "Error loading jobs: " + e.message;
+    }
+  }
+
+  // wiring
+  document.getElementById("addToggle").onclick = function() {
+    var f = document.getElementById("addForm");
+    f.classList.toggle("open");
+    if (f.classList.contains("open")) document.getElementById("newRole").focus();
+  };
+  document.getElementById("addBtn").onclick = async function() {
+    var role = document.getElementById("newRole").value.trim();
+    var company = document.getElementById("newCompany").value.trim();
+    var url = document.getElementById("newUrl").value.trim();
+    if (!role || !company) { setStatus("Role and company are required."); return; }
+    var job = { id: uid(), role: role, company: company, location: "", url: url || null, status: "Saved", notes: "" };
+    jobs.unshift(job);
+    render();
+    document.getElementById("newRole").value = "";
+    document.getElementById("newCompany").value = "";
+    document.getElementById("newUrl").value = "";
+    document.getElementById("addForm").classList.remove("open");
+    try { await insertJob(job); setStatus("Job added."); } catch (e) { setStatus("Insert failed: " + e.message); }
+  };
+  document.getElementById("refreshBtn").onclick = load;
+  document.getElementById("filter").oninput = function() { filterText = this.value.trim(); render(); };
+
+  load();
+  // Auto-refresh so newly-scraped jobs show up without a manual reload.
+  setInterval(load, 5 * 60 * 1000);
+</script>
+</body>
+</html>

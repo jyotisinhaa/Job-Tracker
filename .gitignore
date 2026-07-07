@@ -1,0 +1,15 @@
+# Secrets — never commit
+.env
+.env.*
+!.env.example
+
+# Personal / PII
+Resume.pdf
+*.resume.pdf
+
+# Dependencies & build artifacts
+node_modules/
+public/
+.wrangler/
+*.log
+npm-debug.log*

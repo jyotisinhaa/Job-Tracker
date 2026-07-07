@@ -1,0 +1,31 @@
+{
+  "keyword": ["Backend Engineer", "AI Engineer", "Software Engineer", "Backend Software Engineer"],
+  "locations": ["United States", "San Francisco Bay Area, California"],
+  "workType": ["remote", "hybrid"],
+  "publishedAt": "r86400",
+  "experienceLevel": ["associate", "mid-senior"],
+  "jobTitleExclude": ["Staff", "Principal", "Director", "VP", "Vice President", "Head", "Distinguished", "Fellow", "Manager"],
+  "saveOnlyUniqueItems": true,
+  "enrichCompanyData": false,
+  "resumeKeywords": [
+    { "keyword": "Python" },
+    { "keyword": "Java", "aliases": ["Spring Boot", "Spring", "Hibernate", "JPA"] },
+    { "keyword": "Golang", "aliases": ["Go", "Go lang"] },
+    { "keyword": "C#", "aliases": ["ASP.NET", ".NET", "dotnet"] },
+    { "keyword": "Microservices", "aliases": ["Microservice", "distributed systems"] },
+    { "keyword": "FastAPI" },
+    { "keyword": "gRPC", "aliases": ["ProtoBuf", "Protocol Buffers"] },
+    { "keyword": "REST API", "aliases": ["RESTful", "REST", "APIs"] },
+    { "keyword": "RAG", "aliases": ["Retrieval Augmented Generation", "Retrieval-Augmented Generation"] },
+    { "keyword": "LangChain" },
+    { "keyword": "LLM", "aliases": ["Large Language Model", "GenAI", "Generative AI", "LLMs"] },
+    { "keyword": "MCP", "aliases": ["Model Context Protocol"] },
+    { "keyword": "Vector Database", "aliases": ["FAISS", "Pinecone", "Vector DB", "embeddings", "vector search"] },
+    { "keyword": "PostgreSQL", "aliases": ["Postgres", "SQL", "MS SQL", "SQL Server"] },
+    { "keyword": "Redis" },
+    { "keyword": "Kubernetes", "aliases": ["K8s", "Helm"] },
+    { "keyword": "Docker" },
+    { "keyword": "AWS", "aliases": ["Amazon Web Services", "EC2", "Lambda", "S3"] },
+    { "keyword": "Trino", "aliases": ["Starburst", "Presto"] }
+  ]
+}

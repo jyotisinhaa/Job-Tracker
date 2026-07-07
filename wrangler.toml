@@ -1,0 +1,9 @@
+# Cloudflare Worker config for the Apify → Supabase bridge.
+# Deploy with:  npx wrangler deploy
+# Secrets (APIFY_TOKEN, SUPABASE_URL, SUPABASE_SERVICE_KEY) are set separately
+# via `wrangler secret put` — they are NOT stored in this file.
+
+name = "apify-supabase-bridge"
+main = "files/apify_supabase_bridge.js"
+compatibility_date = "2025-06-01"
+workers_dev = true
